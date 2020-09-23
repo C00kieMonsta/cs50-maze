@@ -6,10 +6,11 @@ class Node():
         self.state = state
         self.parent = parent
         self.action = action
+        self.g = 0 # Distance to start node
+        self.h = 0 # Distance to goal node
+        self.f = 0 # Total cost
 
 # Stack data strcuture - DFS
-
-
 class DFSFrontier():
     def __init__(self):
         self.frontier = []
@@ -33,8 +34,6 @@ class DFSFrontier():
             return node
 
 # Queue data strcuture - BFS
-
-
 class BFSFrontier(DFSFrontier):
     def remove(self):
         if self.empty():
@@ -45,45 +44,29 @@ class BFSFrontier(DFSFrontier):
             return node
 
 # Greedy best-first search
-
-
 class GBFSFrontier(DFSFrontier):
-
-    def __init__(self, goal, start):
-        super(GBFSFrontier, self).__init__()
-        self.goal = goal
-        self.start = start
-
-    def manhattan_distance(self, node):
-        return abs(node.state[0] - self.goal[0]) + abs(node.state[1] - self.goal[1])
 
     def remove(self):
         if self.empty():
             raise Exception('Empty Frontier')
         else:
-            distances = list(
-                map(lambda n: self.manhattan_distance(n), self.frontier))
-            selected_node = distances.index(max(distances))
-            node = self.frontier[selected_node]
-            self.frontier.pop(selected_node)
+            costs = list(map(lambda n: n.h, self.frontier))
+            selected = costs.index(max(costs))
+            node = self.frontier[selected]
+            self.frontier.pop(selected)
             return node
 
 # A* Search
-
-
 class ASearchFrontier(GBFSFrontier):
-    def compute_distance(self, node):
-        return abs(node.state[0] - self.start[0]) + abs(node.state[1] - self.start[1])
 
     def remove(self):
         if self.empty():
             raise Exception('Empty Frontier')
         else:
-            distances = list(map(lambda n: self.manhattan_distance(
-                n) + self.compute_distance(n), self.frontier))
-            selected_node = distances.index(max(distances))
-            node = self.frontier[selected_node]
-            self.frontier.pop(selected_node)
+            costs = list(map(lambda n: n.f, self.frontier))
+            selected = costs.index(max(costs))
+            node = self.frontier[selected]
+            self.frontier.pop(selected)
             return node
 
 
@@ -150,6 +133,7 @@ class Maze():
             print()
         print()
 
+    # Get neighbors of current node
     def neighbors(self, state):
         row, col = state
 
@@ -172,6 +156,7 @@ class Maze():
                 continue
         return result
 
+    # Solve the maze
     def solve(self):
         """ Finds solution to maze if one exists """
 
@@ -188,10 +173,10 @@ class Maze():
             frontier = BFSFrontier()
             print('Breadth-First Search Algorithm was chosen')
         elif self.algo_number == 2:
-            frontier = GBFSFrontier(self.goal, self.start)
+            frontier = GBFSFrontier()
             print('Greedy Best-First Search Algorithm was chosen')
         elif self.algo_number == 3:
-            frontier = ASearchFrontier(self.goal, self.start)
+            frontier = ASearchFrontier()
             print('A* Search Algorithm was chosen')
         else:
             frontier = DFSFrontier()
@@ -235,8 +220,12 @@ class Maze():
             for action, state in self.neighbors(node.state):
                 if not frontier.contains_state(state) and state not in self.explored:
                     child = Node(state=state, parent=node, action=action)
+                    child.g = abs(child.state[0] - self.start[0]) + abs(child.state[1] - self.start[1])
+                    child.h = abs(child.state[0] - self.goal[0]) + abs(child.state[1] - self.goal[1])
+                    child.f = child.g + child.h
                     frontier.add(child)
 
+    # Output PNG image of solved maze
     def output_image(self, filename, show_solution=True, show_explored=False):
         from PIL import Image, ImageDraw
         cell_size = 50
@@ -287,6 +276,7 @@ class Maze():
 
         img.save(filename)
 
+########### EXECUTED ###########
 
 if len(sys.argv) < 2:
     sys.exit(
@@ -305,4 +295,4 @@ maze_test.solve()
 print('States explored: ', maze_test.num_explored)
 print('Solution')
 maze_test.print()
-maze_test.output_image('./maze_solved.png', True, True)
+maze_test.output_image('./assets/maze_solved.png', True, True)
