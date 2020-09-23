@@ -42,12 +42,13 @@ class BFSFrontier(DFSFrontier):
 # Greedy best-first search
 class GBFSFrontier(DFSFrontier):
     
-    def __init__(self, goal):
+    def __init__(self, goal, start):
         super(GBFSFrontier, self).__init__ ()
         self.goal = goal
+        self.start = start
 
     def manhattan_distance(self, node):
-        return abs(self.goal[0]-node.state[0]) + abs(self.goal[1]-node.state[1])
+        return abs(node.state[0] - self.goal[0]) + abs(node.state[1] - self.goal[1])
 
     def remove(self):
         if self.empty():
@@ -61,15 +62,8 @@ class GBFSFrontier(DFSFrontier):
 
 # A* Search
 class ASearchFrontier(GBFSFrontier):
-
     def compute_distance(self, node):
-        n = node
-        actions = []
-        while n.parent is not None:
-            actions.append(n.action)
-            n = n.parent
-
-        return len(actions)
+        return abs(node.state[0] - self.start[0]) + abs(node.state[1] - self.start[1])
 
     def remove(self):
         if self.empty():
@@ -181,11 +175,11 @@ class Maze():
             frontier = BFSFrontier()
             print('Breadth-First Search Algorithm was chosen')
         elif self.algo_number == 2:
-            frontier = GBFSFrontier(self.goal)
+            frontier = GBFSFrontier(self.goal, self.start)
             print('Greedy Best-First Search Algorithm was chosen')
         elif self.algo_number == 3:
-            frontier = ASearchFrontier(self.goal)
-            print('Greedy Best-First Search Algorithm was chosen')
+            frontier = ASearchFrontier(self.goal, self.start)
+            print('A* Search Algorithm was chosen')
         else:
             frontier = DFSFrontier()
             print('Depth-First Search Algorithm was chosen')
@@ -232,14 +226,12 @@ class Maze():
                     frontier.add(child)
 
 if len(sys.argv) < 2:
-    sys.exit('Usage: python maze.py maze1.txt [algo_number]')
+    sys.exit('Usage: python maze.py maze1.txt [algo_number: 0 (DFS), 1 (BFS), 2 (GBFS), 3 (A*)]')
 
 algo_number = 0
 
 if len(sys.argv) == 3:
     algo_number = sys.argv[2]
-
-print('ALGO NUMBER', int(algo_number))
 
 maze_test = Maze(sys.argv[1], int(algo_number))
 print('Maze:')
