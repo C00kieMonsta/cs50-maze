@@ -148,12 +148,8 @@ class Maze():
         # Ensure actions are valid
         result = []
         for action, (r, c) in candidates:
-            try:
-                # check if value is False (not wall block)
-                if not self.walls[r][c]:
-                    result.append((action, (r, c)))
-            except IndexError:
-                continue
+            if 0 <= r < self.height and 0 <= c < self.width and not self.walls[r][c]:
+                result.append((action, (r, c)))
         return result
 
     # Solve the maze
